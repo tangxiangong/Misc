@@ -1,3 +1,4 @@
 comparing_languages/rust/target/
 comparing_languages/rust/Cargo.lock
 comparing_languages/cpp/main
+.vscode
