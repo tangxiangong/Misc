@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Any
 
 class Node(object):
-    def __init__(self, data: any):
+    def __init__(self, data: Any):
         self._data = data
         self._next: Optional[Node] = None
     
@@ -40,6 +40,13 @@ class LinkedList(object):
             self._head = node
             self._tail = node
         else:
-            self._tail.next = node
+            self._tail._next = node
             self._tail = node
         self._size += 1
+
+
+if __name__ == "__main__":
+    linkedlist = LinkedList()
+    linkedlist.add(1)
+    linkedlist.add("2")
+    
