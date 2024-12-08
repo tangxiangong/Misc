@@ -3,11 +3,12 @@ export module complex;
 #include <cmath>
 #include <numbers>
 #include <limits>
+#include <type_traits>
 
 using std::numbers::pi;
 
-// template<typename T>
-// concept Real = std::is_integral_v<T> || std::is_floating_point_v<T>;
+template<typename T>
+concept Real = std::is_integral_v<T> || std::is_floating_point_v<T>;
 
 export bool approx_equal(double a, double b) {
     double diff { fabs(a - b) };
@@ -26,7 +27,13 @@ public:
     double imag();
     double abs();
     double arg();
-    Complex operator+(Complex rhs) const;
+    Complex operator+(Complex);
+    Complex operator+(Real auto);
+    friend Complex operator+(Real auto, Complex);
+    Complex operator-();
+    Complex operator-(Complex);
+    Complex operator-(Real auto);
+    friend Complex operator-(Real auto, Complex);
 private:
     double m_real { 0.0 };
     double m_imaginary { 0.0 };
@@ -77,3 +84,6 @@ double Complex::arg() {
             return atan(ratio) - pi;
     }        
 }
+
+
+Complex operator+(Real auto lhs, Complex rhs) { return Complex { lhs + rhs.real(), rhs.imag() }; }
