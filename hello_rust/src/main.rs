@@ -27,13 +27,14 @@ impl RGB {
     }
 }
 
-static A: [i32; 10] = [0;10];
+
 fn main() {
     println!("Hello, world!");
     let red = RGB(1, 0, 0);
     red.print();
     let green = RGB(0, 1, 0);
     green.moved();
+    let A = "vec![0;10]";
     let a = Box::new(A);
     println!("A 的内容 {:?}", A);
     println!("A 的地址 {:p}", &A);
