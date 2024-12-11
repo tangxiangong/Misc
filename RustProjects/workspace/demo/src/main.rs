@@ -1,25 +1,26 @@
-use std::{cell::{self, Cell, RefCell}, rc::Rc};
+// use std::{cell::{self, Cell, RefCell}, rc::Rc};
 
 
 fn main() {
-    let p = RefCell::new(1);
+    // let a  = (1 + 1 as i16)?;
+    // let p = RefCell::new(1);
     
-    let a = &p;
-    let b = &p;
+    // let a = &p;
+    // let b = &p;
 
-    println!("inner p = {}", p.borrow());
-    println!("inner a = {}", a.borrow());
-    println!("inner b = {}", b.borrow());
+    // println!("inner p = {}", p.borrow());
+    // println!("inner a = {}", a.borrow());
+    // println!("inner b = {}", b.borrow());
     
-    *a.borrow_mut() += 1;
-    println!("inner p = {}", p.borrow());
-    println!("inner a = {}", a.borrow());
-    println!("inner b = {}", b.borrow());
+    // *a.borrow_mut() += 1;
+    // println!("inner p = {}", p.borrow());
+    // println!("inner a = {}", a.borrow());
+    // println!("inner b = {}", b.borrow());
     
-    *b.borrow_mut() += 1;
-    println!("inner p = {}", p.borrow());
-    println!("inner a = {}", a.borrow());
-    println!("inner b = {}", b.borrow());
+    // *b.borrow_mut() += 1;
+    // println!("inner p = {}", p.borrow());
+    // println!("inner a = {}", a.borrow());
+    // println!("inner b = {}", b.borrow());
     
 
     // let cell_ptr = Cell::new(1);
