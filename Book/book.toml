@@ -1,0 +1,6 @@
+[book]
+authors = ["tangxiangong"]
+language = "en"
+multilingual = false
+src = "src"
+title = "my book"
