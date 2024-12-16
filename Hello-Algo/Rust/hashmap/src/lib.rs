@@ -3,7 +3,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Index, IndexMut};
 
 /// 处理未知 `key` 的情况
-pub struct KeyError {
+struct KeyError {
     key_str: String,
 }
 
@@ -176,7 +176,7 @@ where
         }
     }
 
-    pub fn remove(&mut self, key: &K) -> Result<(), KeyError> {
+    pub fn remove(&mut self, key: &K) -> Result<(), impl std::error::Error> {
         let idx = self.calc_idx(key);
         if let Some(v) = self.buckets[idx].as_mut() {
             let mut dest_idx = None;

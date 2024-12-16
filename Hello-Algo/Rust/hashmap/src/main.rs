@@ -11,6 +11,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (key, value) in map.iter() {
         println!("{} => {}", key, value);
     }
+
+    map.remove(&"111".to_string())?;
     // map[&"no. 1".to_string()] = 100;
     // *res = 10;
     // println!("{}", map);
