@@ -2,7 +2,6 @@ use std::fmt::{Debug, Display};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Index, IndexMut};
 
-// TODO keys, values, iterator
 
 pub struct KeyError {
     key_str: String,
@@ -21,7 +20,6 @@ impl Display for KeyError {
 }
 
 impl std::error::Error for KeyError {}
-
 
 #[derive(Debug, Clone)]
 pub(crate) struct Pair<K: Hash + Clone + Eq + Debug, V: Clone + PartialEq + Debug> {
@@ -121,6 +119,22 @@ where
         calc_hash(key) as usize % self.capacity
     }
 
+    pub fn keys(&self) -> Vec<&K> {
+        let mut result = Vec::<&K>::with_capacity(self.size);
+        for (key, _) in self.iter() {
+            result.push(key);
+        }
+        result
+    }
+
+    pub fn values(&self) -> Vec<&V> {
+        let mut result = Vec::<&V>::with_capacity(self.size);
+        for (_, value) in self.iter() {
+            result.push(value);
+        }
+        result
+    }
+
     pub fn add(&mut self, key: K, value: V) {
         if self.is_thres_warning() {
             self.extend();
@@ -166,11 +180,15 @@ where
                         self.load_size -= 1;
                     }
                     Ok(())
-                },
-                None => Err(KeyError{ key_str: key.to_string() })
+                }
+                None => Err(KeyError {
+                    key_str: key.to_string(),
+                }),
             }
         } else {
-            Err(KeyError{ key_str: key.to_string() })
+            Err(KeyError {
+                key_str: key.to_string(),
+            })
         }
     }
 
@@ -210,6 +228,10 @@ where
         } else {
             false
         }
+    }
+
+    pub fn iter(&self) -> Iter<'_, K, V> {
+        Iter::new(self)
     }
 }
 
@@ -294,5 +316,60 @@ where
         }
         s.push_str(&format!("{{{}}} load factor: {}", temp, self.load_factor()));
         f.write_str(&s)
+    }
+}
+
+pub struct Iter<'a, K, V>
+where
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
+{
+    data: &'a Vec<Option<Vec<Pair<K, V>>>>,
+    size: usize,
+    counter: usize,
+    bucket_index: usize,
+    pair_index: usize,
+}
+
+impl<'a, K, V> Iter<'a, K, V>
+where
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
+{
+    pub fn new(map: &'a HashMap<K, V>) -> Iter<'a, K, V> {
+        Iter {
+            data: &map.buckets,
+            size: map.size,
+            counter: 0,
+            bucket_index: 0,
+            pair_index: 0,
+        }
+    }
+}
+
+impl<'a, K, V> Iterator for Iter<'a, K, V>
+where
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
+{
+    type Item = (&'a K, &'a V);
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.counter >= self.size {
+            return None;
+        }
+
+        while self.bucket_index < self.data.len() {
+            if let Some(pairs) = &self.data[self.bucket_index] {
+                if self.pair_index < pairs.len() {
+                    let pair = &pairs[self.pair_index];
+                    self.pair_index += 1;
+                    self.counter += 1;
+                    return Some((&pair.key, &pair.value));
+                }
+                self.pair_index = 0;
+            }
+            self.bucket_index += 1;
+        }
+        None
     }
 }
