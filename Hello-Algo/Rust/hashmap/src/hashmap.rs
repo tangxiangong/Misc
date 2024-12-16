@@ -1,29 +1,47 @@
-use core::panic;
-use std::fmt::{Display, Debug};
+use std::fmt::{Debug, Display};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Index, IndexMut};
 
+// TODO keys, values, iterator
+
+pub struct KeyError {
+    key_str: String,
+}
+
+impl Debug for KeyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "'{}' 不存在！", self.key_str)
+    }
+}
+
+impl Display for KeyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error: '{}' 不存在！", self.key_str)
+    }
+}
+
+impl std::error::Error for KeyError {}
+
 
 #[derive(Debug, Clone)]
-struct Pair<K: Hash + Clone + Eq + Debug, V: Clone + PartialEq + Debug> {
+pub(crate) struct Pair<K: Hash + Clone + Eq + Debug, V: Clone + PartialEq + Debug> {
     key: K,
     value: V,
 }
 
-impl<K, V> Display for Pair<K, V> 
-where 
-    K: Hash + Clone + Eq + Debug,
-    V: Clone + PartialEq + Debug, 
+impl<K, V> Display for Pair<K, V>
+where
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} => {:?}", self.key, self.value)
     }
-
 }
 
-impl<K, V> Pair<K, V> 
+impl<K, V> Pair<K, V>
 where
-    K: Hash + Clone + Eq + Debug,
+    K: Hash + Clone + Eq + Debug + Display,
     V: Clone + PartialEq + Debug,
 {
     fn new(key: K, value: V) -> Self {
@@ -32,9 +50,9 @@ where
 }
 
 #[derive(Debug)]
-pub struct HashMap<K, V> 
+pub struct HashMap<K, V>
 where
-    K: Hash + Clone + Eq + Debug,
+    K: Hash + Clone + Eq + Debug + Display,
     V: Clone + PartialEq + Debug,
 {
     size: usize,
@@ -48,12 +66,12 @@ where
 fn calc_hash(key: &impl Hash) -> u64 {
     let mut hasher = DefaultHasher::new();
     key.hash(&mut hasher);
-    hasher.finish()    
+    hasher.finish()
 }
 
-impl<K, V> HashMap<K, V> 
+impl<K, V> HashMap<K, V>
 where
-    K: Hash + Clone + Eq + Debug,
+    K: Hash + Clone + Eq + Debug + Display,
     V: Clone + PartialEq + Debug,
 {
     pub fn new(capacity: usize) -> Self {
@@ -80,6 +98,10 @@ where
         self.load_factor() > self.load_thres
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.size == 0
+    }
+
     fn extend(&mut self) {
         self.update_capacity();
         self.size = 0;
@@ -104,7 +126,7 @@ where
             self.extend();
         }
         let idx = self.calc_idx(&key);
-        let src =  &mut self.buckets[idx];
+        let src = &mut self.buckets[idx];
         if let Some(v) = src.as_mut() {
             for iterm in v.iter_mut() {
                 if iterm.key == key {
@@ -126,16 +148,56 @@ where
         }
     }
 
+    pub fn remove(&mut self, key: &K) -> Result<(), KeyError> {
+        let idx = self.calc_idx(key);
+        if let Some(v) = self.buckets[idx].as_mut() {
+            let mut dest_idx = None;
+            for (k, iterm) in v.iter().enumerate() {
+                if iterm.key == *key {
+                    dest_idx = Some(k);
+                }
+            }
+            match dest_idx {
+                Some(index) => {
+                    v.swap_remove(index);
+                    self.size -= 1;
+                    if v.is_empty() {
+                        self.buckets[idx] = None;
+                        self.load_size -= 1;
+                    }
+                    Ok(())
+                },
+                None => Err(KeyError{ key_str: key.to_string() })
+            }
+        } else {
+            Err(KeyError{ key_str: key.to_string() })
+        }
+    }
+
     pub fn find(&self, key: &K) -> Option<&V> {
         let idx = self.calc_idx(key);
         let mut result: Option<&V> = None;
         if let Some(v) = self.buckets[idx].as_ref() {
             for iterm in v {
                 if iterm.key == *key {
-                    result = Some(& iterm.value);
+                    result = Some(&iterm.value);
                     break;
                 }
-             }
+            }
+        }
+        result
+    }
+
+    pub fn find_mut(&mut self, key: &K) -> Option<&mut V> {
+        let idx = self.calc_idx(key);
+        let mut result = None;
+        if let Some(v) = self.buckets[idx].as_mut() {
+            for iterm in v.iter_mut() {
+                if iterm.key == *key {
+                    result = Some(&mut iterm.value);
+                    break;
+                }
+            }
         }
         result
     }
@@ -151,60 +213,50 @@ where
     }
 }
 
-impl<K, V> Index<&K> for HashMap<K, V>  
+impl<K, V> Index<&K> for HashMap<K, V>
 where
-    K: Hash + Clone + Eq + Debug,
-    V: Clone + PartialEq + Debug,  
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
 {
     type Output = V;
-    /// 
+    ///
     /// 返回 `key` 所对应值的引用
-    /// 
+    ///
     /// # Panic
-    /// 
+    ///
     /// 当 `idx` 不存在时 panic
-    /// 
+    ///
     fn index(&self, key: &K) -> &Self::Output {
         match self.find(key) {
             Some(value) => value,
             None => panic!("{:?} 不存在", key),
         }
-    }     
+    }
 }
 
-impl<K, V> IndexMut<&K> for HashMap<K, V>  
+impl<K, V> IndexMut<&K> for HashMap<K, V>
 where
-    K: Hash + Clone + Eq + Debug,
-    V: Clone + PartialEq + Debug,  
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
 {
-    /// 
+    ///
     /// 返回 `key` 所对应值的引用
-    /// 
+    ///
     /// # Panic
-    /// 
+    ///
     /// 当 `idx` 不存在时 panic
-    /// 
+    ///
     fn index_mut(&mut self, key: &K) -> &mut Self::Output {
-            let idx = self.calc_idx(key);
-            let mut res = None;
-            if let Some(v) = self.buckets[idx].as_mut() {
-                for iterm in v.iter_mut() {
-                    if iterm.key == *key {
-                        res = Some(&mut iterm.value);
-                    }
-                 }
-            }
-            match res {
-                Some(v) => v,
-                None => panic!("{:?} 不存在！", key),
-            }
+        match self.find_mut(key) {
+            Some(v) => v,
+            None => panic!("{:?} 不存在！", key),
         }
-     
+    }
 }
 
-impl<K, V> Default for HashMap<K, V>  
+impl<K, V> Default for HashMap<K, V>
 where
-    K: Hash + Clone + Eq + Debug,
+    K: Hash + Clone + Eq + Debug + Display,
     V: Clone + PartialEq + Debug,
 {
     fn default() -> Self {
@@ -219,13 +271,16 @@ where
     }
 }
 
-impl<K, V> Display for HashMap<K, V> 
-where 
-    K: Hash + Clone + Eq + Debug,
-    V: Clone + PartialEq + Debug, 
+impl<K, V> Display for HashMap<K, V>
+where
+    K: Hash + Clone + Eq + Debug + Display,
+    V: Clone + PartialEq + Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut s =  format!("HashMap with size: {}, capacity: {}.\n", self.size, self.capacity);
+        let mut s = format!(
+            "HashMap with size: {}, capacity: {}.\n",
+            self.size, self.capacity
+        );
         let mut temp = "\n".to_string();
         for iterm in self.buckets.iter() {
             if iterm.is_some() {
@@ -238,9 +293,6 @@ where
             }
         }
         s.push_str(&format!("{{{}}} load factor: {}", temp, self.load_factor()));
-        
-        // write!(f, "load factor: {}", self.load_factor())
         f.write_str(&s)
     }
-
 }
