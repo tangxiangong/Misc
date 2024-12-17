@@ -1,4 +1,3 @@
-export module complex;
 #include <iostream>
 #include <cmath>
 #include <numbers>
@@ -27,7 +26,7 @@ public:
     double imag();
     double abs();
     double arg();
-    Complex operator+(Complex);
+    Complex operator+(const Complex&);
     Complex operator+(Real auto);
     friend Complex operator+(Real auto, Complex);
     Complex operator-();

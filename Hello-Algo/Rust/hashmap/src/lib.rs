@@ -298,11 +298,11 @@ where
     fn default() -> Self {
         HashMap {
             size: 0,
-            capacity: 0,
+            capacity: 10,
             load_size: 0,
             load_thres: 0.75,
             extend_ratio: 2,
-            buckets: Vec::new(),
+            buckets: vec![None; 10],
         }
     }
 }
@@ -333,6 +333,7 @@ where
     }
 }
 
+/// 哈希表 `HashMap` 所对应的迭代器
 pub struct Iter<'a, K, V>
 where
     K: Hash + Clone + Eq + Debug + Display,
