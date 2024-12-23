@@ -3,7 +3,7 @@ import {memory} from "wasm-game-of-life/wasm_game_of_life_bg.wasm";
 
 const getIndex = (row, column) => {
     return row * width + column;
-};
+};``
 
 const drawCells = () => {
     const cellsPtr = universe.cells();
