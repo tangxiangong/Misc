@@ -5,3 +5,17 @@ edition = "2021"
 rust-version = "1.85"
 
 [dependencies]
+
+[profile.release]
+opt-level = 3
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+ 
+[[bench]]
+name = "benchmark"
+harness = false
+
+[profile.bench]
+opt-level = 3
+debug = false
