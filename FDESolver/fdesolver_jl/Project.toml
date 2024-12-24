@@ -1,0 +1,10 @@
+name = "fdesolver_jl"
+uuid = "f67cac36-7ce9-4991-ac34-4ad63078ea34"
+authors = ["tangxiangong <tangxiangong@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+
+[compat]
+SpecialFunctions = "2.5.0"
