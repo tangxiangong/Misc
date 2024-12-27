@@ -11,12 +11,9 @@ fn criterion_benchmark(c: &mut Criterion) {
         source: |t| (-t / 10.0).exp(),
     };
     let pro = Discretization { eq, step: 0.001 };
-    
+    println!("Rust 基准测试");    
     c.bench_function("FDESolver", |b| b.iter(|| solve(black_box(&pro))));
+    println!("-----------------------------------");
 }
-
-println!("Rust 基准测试");
- 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
-println!("-----------------------------------");
