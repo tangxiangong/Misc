@@ -19,26 +19,34 @@ class RationalNumber {
 public:
     RationalNumber() = default;
     RationalNumber(const I&, const I&); 
-    Sign sign() const;
+    [[nodiscard]] Sign sign() const;
 private:
-    I numeritor = 0;
+    I numerator = 0;
     I denominator = 1;
 };
 
 export template<Integer I>
 using rational = RationalNumber<I>;
 
-
 template <Integer I>
-RationalNumber<I>::RationalNumber(const I& p, const I& q) : numeritor(p), denominator(q) {
+RationalNumber<I>::RationalNumber(const I& p, const I& q) : numerator(p), denominator(q) {
     if (q == 0)
-        throw("Error: the denominator could not be zero!");
-    auto divisor = std::gcd(numeritor, denominator);
-    numeritor /= divisor;
+        throw ("Error: the denominator could not be zero!");
+    auto divisor = std::gcd(numerator, denominator);
+    numerator /= divisor;
     denominator /= divisor;
 }
 
 template <Integer I>
 Sign RationalNumber<I>::sign() const {
-    
+    I temp { numerator * denominator };
+    Sign sgn;
+    if(temp > 0) {
+        sgn = Sign::Positive;
+    } else if(temp < 0) {
+        sgn = Sign::Negative;
+    } else {
+        sgn = Sign::Zero;
+    }
+    return sgn;
 }

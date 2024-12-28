@@ -21,4 +21,4 @@ target_sources(rational
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 add_executable(main main.cpp)
-target_link_libraries(main hellomodule)
+target_link_libraries(main rational)
