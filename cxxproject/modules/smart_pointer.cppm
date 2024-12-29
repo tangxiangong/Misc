@@ -136,6 +136,7 @@ public:
     [[nodiscard]] size_t count() const {
         return m_base->m_ref_count;
     }
+
     Tp* get_raw() {
         return m_base->m_ptr;
     }
