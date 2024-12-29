@@ -12,56 +12,54 @@ export module smart_pointer;
  * */
 export template<typename Tp>
 struct Box {
-public:
     // DELETE 默认无参构造
     Box() = delete;
 
     // DELETE 默认拷贝构造
-    Box(const Box&) = delete;
+    Box(const Box &) = delete;
 
     // DELETE 默认拷贝赋值运算符
-    Box& operator=(const Box&) = delete;
+    Box &operator=(const Box &) = delete;
 
     // 移动构造函数
-    Box(Box&& other) noexcept : m_ptr {other.m_ptr} {
+    Box(Box &&other) noexcept : m_ptr{other.m_ptr} {
         other.m_ptr = nullptr;
     }
 
     // 移动赋值运算符
-    Box& operator=(Box&& rhs) noexcept {
-        if(this != &rhs) [[likely]] {
+    Box &operator=(Box &&rhs) noexcept {
+        if (this != &rhs) [[likely]] {
             delete m_ptr;
             m_ptr = std::exchange(rhs.m_ptr, nullptr);
         }
         return *this;
     }
 
-    Tp* get_raw() {
+    Tp *get_raw() {
         return m_ptr;
     }
 
-    Tp* release() {
-        Tp* ptr = std::exchange(m_ptr, nullptr);
+    Tp *release() {
+        Tp *ptr = std::exchange(m_ptr, nullptr);
         return ptr;
     }
 
-    void swap(Box<Tp>& other) {
+    void swap(Box &other) noexcept {
         std::swap(m_ptr, other.m_ptr);
     }
 
-    void reset(Tp* src = nullptr) {
-        Tp* ptr = std::exchange(m_ptr, src);
+    void reset(Tp *src) {
+        const Tp *ptr = std::exchange(m_ptr, src);
         delete ptr;
-        src = nullptr;
     }
 
     // 重载 ->
-    Tp* operator->() {
+    Tp *operator->() {
         return m_ptr;
     }
 
     // 解引用
-    Tp& operator*() {
+    Tp &operator*() {
         return *m_ptr;
     }
 
@@ -69,89 +67,105 @@ public:
         return m_ptr == nullptr;
     }
 
-    template<typename ...Args>
-    static Box<Tp> make(Args&& ...args) {
-        return Box<Tp>(new Tp(std::forward<Args>(args)...));
+    template<typename... Args>
+    static Box make(Args &&... args) {
+        return Box(new Tp(std::forward<Args>(args)...));
     }
 
     ~Box() {
-        if(m_ptr != nullptr) {
+        if (m_ptr != nullptr) {
             delete m_ptr;
             m_ptr = nullptr;
         }
-    };
+    }
+
 private:
-    Tp* m_ptr = nullptr;
-    explicit Box(Tp* ptr) : m_ptr {ptr} {}
+    Tp *m_ptr = nullptr;
+
+    explicit Box(Tp *ptr) : m_ptr{ptr} {
+    }
 };
 
 
-template <typename Tp>
+template<typename Tp>
 struct RcBase {
-    Tp* m_ptr = nullptr;
+    Tp *m_ptr = nullptr;
     size_t m_ref_count = 0;
-    explicit RcBase(Tp* ptr) : m_ptr {ptr} {}
+
+    explicit RcBase(Tp *ptr) : m_ptr{ptr} {
+    }
 };
 
-export template <typename Tp, typename Base = RcBase<Tp>>
+export template<typename Tp, typename Base = RcBase<Tp> >
 struct Rc {
-public:
     Rc() = delete;
-    Rc(const Rc& other) : m_base {other.m_base} { m_base->m_ref_count++; }
-    Rc& operator=(const Rc<Tp>& other) {
-        if(m_base != other.m_base) [[likely]] {
+
+    Rc(const Rc &other) : m_base{other.m_base} { ++m_base->m_ref_count; }
+
+    Rc &operator=(const Rc<Tp> &other) {
+        if (m_base != other.m_base) [[likely]] {
             delete m_base->m_ptr;
             m_base->m_ptr = nullptr;
             delete m_base;
             m_base = other.m_base;
-            m_base -> m_ref_count++;
+            ++m_base->m_ref_count;
         }
         return *this;
     }
-    Rc(Rc&& other) noexcept : m_base {other.m_base} {
+
+    Rc(Rc &&other) noexcept : m_base{other.m_base} {
         other.m_base = nullptr;
     }
-    Rc& operator=(Rc<Tp>&& other) {
-        if(m_base != other.m_base) {
+
+    Rc &operator=(Rc<Tp> &&other) {
+        if (m_base != other.m_base) {
             delete m_base->m_ptr;
             m_base->m_ptr = nullptr;
             m_base = std::exchange(other.m_base, nullptr);
         }
         return *this;
     }
-    bool operator==(const Rc<Tp>& other) {
+
+    bool operator==(const Rc<Tp> &other) {
         return m_base == other.m_base;
     }
-    Tp* operator->() {
+
+    Tp *operator->() {
         return m_base->m_ptr;
     }
-    Tp& operator*() {
-        return *(m_base->m_ptr);
+
+    Tp &operator*() {
+        return *m_base->m_ptr;
     }
-    template <typename ...Args>
-    static Rc<Tp> make(Args ...args) {
-        Base* base = new Base(new Tp(std::forward<Args>(args)...));
+
+    template<typename... Args>
+    static Rc<Tp> make(Args... args) {
+        Base *base = new Base(new Tp(std::forward<Args>(args)...));
         return Rc(base);
     }
+
     [[nodiscard]] size_t count() const {
         return m_base->m_ref_count;
     }
 
-    Tp* get_raw() {
+    Tp *get_raw() {
         return m_base->m_ptr;
     }
+
     ~Rc() {
-        m_base->m_ref_count--;
-        if(m_base->m_ref_count == 0) {
+        --m_base->m_ref_count;
+        if (m_base->m_ref_count == 0) {
             delete m_base->m_ptr;
             m_base->m_ptr = nullptr;
             delete m_base;
             m_base = nullptr;
         }
     }
+
 private:
-    Base* m_base;
-    explicit Rc(Base* base) : m_base {base} {
-        m_base->m_ref_count++;
+    Base *m_base;
+
+    explicit Rc(Base *base) : m_base{base} {
+        ++m_base->m_ref_count;
     }
 };

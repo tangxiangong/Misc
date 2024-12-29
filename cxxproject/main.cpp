@@ -6,14 +6,13 @@ import forwardlist;
 
 int main() {
     int a = 10;
-    auto n1 = List<int>::Node::make(1);
-    auto n2 = List<int>::Node::make(2);
-    auto n3 = List<int>::Node::make(3);
-    auto n4 = List<int>::Node::make(4);
-    auto n5 = List<int>::Node::make(5);
+    List<int> list {1, 2, 3, 4, 5, a};
+    const auto n1 = List<int>::Node::make(1);
+    const auto n2 = List<int>::Node::make(2);
+    const auto n3 = List<int>::Node::make(3);
+    const auto n4 = List<int>::Node::make(4);
+    const auto n5 = List<int>::Node::make(5);
 
-
-    List<int> list {};
     list.append(n1);
     list.append(n2);
     list.append(n3);
@@ -21,15 +20,12 @@ int main() {
     list.append(n5);
     list.append(n1);
 
+    int& node = list.get_mut(4);
+    node = 10;
+    list.display();
+    std::cout << "Capacity: " << list.capacity() << std::endl;
     std::cout << "Circular: " << std::boolalpha << list.has_circle() << std::endl;
 
-    auto cnode = list.circular_node();
-    if(cnode) {
-        std::println("Circular node value: {}", cnode->data());
-    }
-    for(auto value: list) {
-        std::println("{}", value);
-    }
     return 0;
 }
 
