@@ -35,7 +35,3 @@ concept Num = is_number_v<T> && requires (T a, T b) {
 template<Num T, Num U> requires requires (T a, U b) {
     a + b;
 }
-
-// auto add(T a, U b) {
-//     return a + b;
-// }
