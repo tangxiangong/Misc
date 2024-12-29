@@ -1,12 +1,32 @@
 #include <print>
+#include <memory>
+#include <iostream>
 import smart_pointer;
-import linearlist;
+import forwardlist;
 
 int main() {
     int a = 10;
+    auto n1 = List<int>::Node::make(1);
+    auto n2 = List<int>::Node::make(2);
+    auto n3 = List<int>::Node::make(3);
+    auto n4 = List<int>::Node::make(4);
+    auto n5 = List<int>::Node::make(5);
+
+
     List<int> list {};
-    list.push(1);
-    list.push(a);
+    list.append(n1);
+    list.append(n2);
+    list.append(n3);
+    list.append(n4);
+    list.append(n5);
+    list.append(n1);
+
+    std::cout << "Circular: " << std::boolalpha << list.has_circle() << std::endl;
+
+    auto cnode = list.circular_node();
+    if(cnode) {
+        std::println("Circular node value: {}", cnode->data());
+    }
     for(auto value: list) {
         std::println("{}", value);
     }
