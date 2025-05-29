@@ -1,0 +1,25 @@
+[package]
+name = "helloworld"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+name = "hello_world"
+
+[[bin]]
+name = "helloworld-server"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "helloworld-client"
+path = "src/bin/client.rs"
+
+[dependencies]
+tonic = { workspace = true }
+prost = { workspace = true }
+tokio = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }

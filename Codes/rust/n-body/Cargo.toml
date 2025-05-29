@@ -1,0 +1,7 @@
+[package]
+name = "n-body"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
